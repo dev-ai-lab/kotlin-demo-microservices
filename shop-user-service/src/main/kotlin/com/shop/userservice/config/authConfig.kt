@@ -2,11 +2,12 @@ package com.shop.userservice.config
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.features.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.http.*
-import io.ktor.request.*
+import io.ktor.server.request.*
+
+// Note: avoid importing non-existent oauth package for this Ktor version.
 
 class SimpleJWT(secret: String){
     val algorithm = Algorithm.HMAC256(secret)
@@ -28,10 +29,11 @@ var googleOauthProvider = OAuthServerSettings.OAuth2ServerSettings(
 )
 
 fun ApplicationCall.redirectUrl(path: String): String {
-    val defaultPort = if (request.origin.scheme == "http") 80 else 443
-    val hostPort = request.host()!! + request.port().let { port -> if (port == defaultPort) "" else ":$port" }
-    val protocol = request.origin.scheme
+    val origin = this.request.local
+    val defaultPort = if (origin.scheme == "http") 80 else 443
+    val hostPort = origin.localHost + origin.localPort.let { port -> if (port == defaultPort) "" else ":$port" }
+    val protocol = origin.scheme
     return "$protocol://$hostPort$path"
 }
 
-class JustSellSession(val notUserId: String)
+data class JustSellSession(val notUserId: String)

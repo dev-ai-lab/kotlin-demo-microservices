@@ -9,7 +9,7 @@ group 'com.ktor.greenfield'
 version '0.0.1'
 
 application {
-    mainClass = 'com.shop.itemservice.ApplicationKt'
+    mainClass = 'io.ktor.server.netty.EngineMain'
 }
 
 repositories {
@@ -43,4 +43,17 @@ dependencies {
 
     // HTTP client
     implementation("io.ktor:ktor-client-apache5-jvm:$ktor_version")
+}
+
+kotlin {
+    jvmToolchain(21) // Use Java 25 consistently
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
 }

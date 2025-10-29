@@ -1,45 +1,25 @@
 package com.shop.userservice
 
 import com.fasterxml.jackson.databind.SerializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.shop.userservice.config.*
-//import com.shop.userservice.web.api.v1.routeApiV1
+import com.shop.userservice.web.api.v1.routeApiV1
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
-import io.ktor.server.plugins.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.jackson.jackson
 import io.ktor.http.*
-import io.ktor.serialization.jackson.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
-import org.slf4j.event.Level
-
-/*fun main(args: Array<String>) {
-    io.ktor.server.netty.EngineMain.main(args)
-}
-
-fun Application.module() {
-    //configureRouting()
-}*/
-/**
- *
-fun main(args: Array<String>) {
-    embeddedServer(
-    Netty,
-    watchPaths = listOf("solutions/exercise4"),
-    port = 8080,
-    module = Application::mymodule
-    ).apply { start(wait = true) }
-}
- */
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
 fun Application.module() {
     val client = HttpClient(Apache) {
     }
@@ -63,18 +43,17 @@ fun Application.module() {
             urlProvider = { redirectUrl("/api/v1/login")}
         }
     }
-    //install(WebSockets)
     install(Sessions) {
+        // Use a JSON serializer for sessions to avoid requiring kotlinx.serialization.
+        val mapper = jacksonObjectMapper()
         cookie<JustSellSession>("oauthSampleSessionId") {
+            serializer = object : SessionSerializer<JustSellSession> {
+                override fun deserialize(text: String): JustSellSession = mapper.readValue(text, JustSellSession::class.java)
+                override fun serialize(session: JustSellSession): String = mapper.writeValueAsString(session)
+            }
             val secretSignKey = hex("0001020304bbbb090a0b0c0d0e0f") // @TODO: Remember to change this!
             transform(SessionTransportTransformerMessageAuthentication(secretSignKey))
         }
-    }
-    install(CallLogging) {
-        level = Level.ERROR
-        //filter { call -> call.request.path().startsWith("/section1") }
-        //filter { call -> call.request.path().startsWith("/section2") }
-        // ...
     }
 
     routing {

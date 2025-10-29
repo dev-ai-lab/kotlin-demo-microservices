@@ -9,7 +9,11 @@ data class Profile(
     val lastname: String,
     var purchasedItemsId: List<Int>? = null
 ) {
-    val purchasedItems: List<Item>? by lazy { getPurchasedItems(this) }
+    /**
+     * Fetch purchased items for this profile.
+     * This is a suspend function because it performs an HTTP client call.
+     */
+    suspend fun fetchPurchasedItems(): List<Item> = getPurchasedItems(this)
 }
 
 val profiles = Collections.synchronizedMap(

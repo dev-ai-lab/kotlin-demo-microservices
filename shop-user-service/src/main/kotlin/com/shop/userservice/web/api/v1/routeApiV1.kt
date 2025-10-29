@@ -8,53 +8,24 @@ import com.shop.userservice.config.simpleJwt
 import com.shop.userservice.domain.*
 import com.shop.userservice.web.api.v1.dto.PurchaseListDto
 import com.shop.userservice.web.api.v1.exception.InvalidCredentialException
-import io.ktor.application.*
-import io.ktor.auth.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.client.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.request.*
-import io.ktor.features.*
+import io.ktor.client.call.*
 import io.ktor.http.*
-import io.ktor.jackson.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.sessions.*
+import io.ktor.server.request.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import kotlin.collections.Map
 import kotlin.collections.getOrPut
 import kotlin.collections.mapOf
 import kotlin.collections.set
 
 fun Route.routeApiV1(path: String) = route(path) {
-    install(ContentNegotiation) {
-        jackson {
-            enable(SerializationFeature.INDENT_OUTPUT)
-        }
-*
-         * or
-         * gson { setDateFormat(DateFormat.LONG)
-                    setPrettyPrinting() }
-
-
-    }
-
-    install(StatusPages) {
-        // catch IllegalStateException and send back HTTP code 400
-        exception<IllegalStateException> { cause ->
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to (cause.message ?: "")))
-            throw cause
-        }
-
-        exception<Throwable> { cause ->
-            call.respond(HttpStatusCode.InternalServerError, mapOf("error" to (cause.message ?: "")))
-            //throw cause
-        }
-
-        exception<InvalidCredentialException> {
-            call.respond(HttpStatusCode.Unauthorized, mapOf("Ok" to false, "error" to (it.message ?: "")))
-        }
-    }
-
     post("/login") {
         val userDto = call.receive<UserRequestDto>()
         val user = users.getOrPut(userDto.username) { User(userDto.username, userDto.password) }
@@ -88,9 +59,11 @@ fun Route.routeApiV1(path: String) = route(path) {
                 val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
                     ?: error("No principal")
 
-                val json = HttpClient(Apache).get<String>("https://www.googleapis.com/userinfo/v2/me") {
-                    header("Authorization", "Bearer ${principal.accessToken}")
-                }
+                val client = HttpClient(Apache)
+                val json = client.get("https://www.googleapis.com/userinfo/v2/me") {
+                    header(HttpHeaders.Authorization, "Bearer ${principal.accessToken}")
+                }.body<String>()
+                client.close()
 
                 val data = ObjectMapper().readValue<Map<String, Any?>>(json)
                 val id = data["id"] as String?
