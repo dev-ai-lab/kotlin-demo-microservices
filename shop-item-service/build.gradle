@@ -1,0 +1,46 @@
+
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'io.ktor.plugin' version "$ktor_version"
+    id 'application'
+}
+
+group 'com.ktor.greenfield'
+version '0.0.1'
+
+application {
+    mainClass = 'com.shop.itemservice.ApplicationKt'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Core server + engine
+    implementation "io.ktor:ktor-server-core-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-netty-jvm:$ktor_version"
+
+    // Common Ktor features
+    implementation "io.ktor:ktor-server-auth-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-auth-jwt-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktor_version"
+    implementation "io.ktor:ktor-serialization-jackson-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-html-builder-jvm:$ktor_version"
+
+    // Logging
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    // Ktor client (optional)
+    implementation "io.ktor:ktor-client-core-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-apache-jvm:$ktor_version"
+
+    // Tests
+    //testImplementation "io.ktor:ktor-server-tests-jvm:$ktor_version"
+    testImplementation "io.ktor:ktor-server-test-host:$ktor_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+
+    // HTTP client
+    implementation("io.ktor:ktor-client-apache5-jvm:$ktor_version")
+}
