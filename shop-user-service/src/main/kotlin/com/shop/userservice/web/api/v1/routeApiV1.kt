@@ -1,14 +1,12 @@
 package com.shop.userservice.web.api.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.shop.userservice.config.JustSellSession
 import com.shop.userservice.config.simpleJwt
 import com.shop.userservice.domain.*
 import com.shop.userservice.web.api.v1.dto.PurchaseListDto
 import com.shop.userservice.web.api.v1.exception.InvalidCredentialException
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.client.*

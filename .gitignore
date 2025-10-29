@@ -1,34 +1,39 @@
-# general OS stuff
+# gitignore for Java / Gradle / Kotlin project (recursive for submodules)
+
+# macOS
 .DS_Store
 
 # conform with ADR concerning docker-compose usage (use a .env_local file)
-.env
+.env_local
 
-# gradle files
-.gradle/
-build/
+# gradle caches and outputs (recursive for submodules)
+**/.gradle/
+**/build/
+
+# gradle metadata
 buildInfo.js
 
-# auth files
+# local auth / machine-specific files
 local.properties
 
-# idea files
+# IntelliJ IDEA
 *.iml
-**/.idea/*
+**/.idea/
 !.idea/codeStyles
 !.idea/saveactions_settings.xml
-.vscode/
-out/
 
-# eclipse files
+# VS Code
+.vscode/
+
+# Eclipse
 bin/
 .project
 .settings/
 .classpath
 
-# Compiled class file
+# compiled classes and logs
 *.class
-
-# Log file
 *.log
-/.idea/
+
+# generic IDE/output folders (recursive)
+**/out/
