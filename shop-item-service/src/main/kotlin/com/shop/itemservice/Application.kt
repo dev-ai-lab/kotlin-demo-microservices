@@ -1,35 +1,31 @@
 package com.shop.itemservice
 
-import com.fasterxml.jackson.databind.SerializationFeature
 import com.shop.itemservice.config.Health
 import com.shop.itemservice.config.HealthStatus
+import com.shop.itemservice.config.di.itemModule
 import com.shop.itemservice.config.simpleJwt
 import com.shop.itemservice.web.api.v1.routeApiV1
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.apache5.Apache5
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.serialization.jackson.jackson
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.auth.UserIdPrincipal
-import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
-import io.ktor.server.netty.EngineMain
+import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
+import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import kotlinx.serialization.json.Json
+import org.koin.ktor.plugin.Koin
 
 fun main(args: Array<String>) = EngineMain.main(args)
 
-@Suppress("unused")
-@JvmOverloads
 fun Application.module() {
-    val client = HttpClient(Apache5)
+    install(Koin) {
+        modules(itemModule(environment.config))
+    }
 
     install(ContentNegotiation) {
-        jackson { enable(SerializationFeature.INDENT_OUTPUT) }
+        json(Json { prettyPrint = true; ignoreUnknownKeys = true }) // use json serialization if you needed native
     }
 
     install(io.ktor.server.auth.Authentication) {

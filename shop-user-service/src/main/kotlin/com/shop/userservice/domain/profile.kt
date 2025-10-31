@@ -7,6 +7,9 @@ data class Profile(
     val userId: UUID,
     var firstname: String,
     var lastname: String,
+    val email: String,
+    val createdAt: Long,
+    val updatedAt: Long
 ) {
     /**
      * Fetch purchased items for this profile.
@@ -20,7 +23,10 @@ val profiles = Collections.synchronizedMap(
         Profile(
             userId = UUID.randomUUID(),   // link to the 'test' user in users map
             firstname = "Test",
-            lastname = "User"
+            lastname = "User",
+            email = "user@mail.com",
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
         )
     ).associateBy { it.userId }  // use userId as the key
         .toMutableMap()

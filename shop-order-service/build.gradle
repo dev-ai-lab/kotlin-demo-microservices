@@ -1,0 +1,55 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
+    id 'io.ktor.plugin' version "$ktor_version"
+    id 'application'
+}
+
+group = 'com.shop.orderservice'
+version = '0.0.1'
+
+application {
+    mainClass = 'com.shop.orderservice.ApplicationKt'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Core server + engine
+    implementation "io.ktor:ktor-server-core-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-netty-jvm:$ktor_version"
+
+    // Common Ktor features
+    implementation "io.ktor:ktor-server-auth-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-auth-jwt-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktor_version"
+    implementation "io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-html-builder-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-status-pages-jvm:$ktor_version"
+    implementation "io.ktor:ktor-server-sessions-jvm:$ktor_version"
+
+    // Logging
+    implementation "ch.qos.logback:logback-classic:$logback_version"
+
+    // Ktor client
+    implementation "io.ktor:ktor-client-core-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-apache-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-content-negotiation-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-logging-jvm:$ktor_version"
+    implementation "io.ktor:ktor-client-apache5-jvm:$ktor_version"
+
+    // Dependency Injection: Koin
+    implementation("io.insert-koin:koin-core:4.1.1")
+    implementation("io.insert-koin:koin-ktor:4.1.1")
+    implementation("io.insert-koin:koin-logger-slf4j:4.1.1")
+
+    // Tests
+    testImplementation "io.ktor:ktor-server-test-host:$ktor_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
+}
+
+kotlin {
+    jvmToolchain(21)
+}

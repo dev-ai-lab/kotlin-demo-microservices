@@ -1,7 +1,5 @@
 package com.shop.userservice.web.api.v1
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.readValue
 import com.shop.userservice.config.*
 import com.shop.userservice.domain.*
 import com.shop.userservice.web.api.v1.dto.ProfileCreateDto
@@ -16,6 +14,9 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import org.koin.ktor.ext.inject
 import java.util.*
 
@@ -39,11 +40,18 @@ fun Route.routeApiV1(path: String) = route(path) {
 
         // Create user
         val userId = UUID.randomUUID()
-        val user = User(userId, username = signup.username, passwordHash = passwordHash)
+        val user = User(
+            userId, username = signup.username, passwordHash = passwordHash)
         users[userId.toString()] = user
 
         // Create default profile linked to the userId
-        val profile = Profile(userId = userId, firstname = "", lastname = "")
+        val profile = Profile(userId = userId,
+            firstname = "",
+            lastname = "",
+            email = "",
+            createdAt = System.currentTimeMillis(),
+            updatedAt = System.currentTimeMillis()
+            )
         profiles[userId] = profile
         // Respond with created profile info (excluding sensitive data)
         call.respond(HttpStatusCode.Created, mapOf(
@@ -96,6 +104,7 @@ fun Route.routeApiV1(path: String) = route(path) {
         route("/profile") {
             get {
                 val userId = call.currentUserId() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+                //val sellSession = call.sessions.get<JustSellSession>()
 
                 val profile = profiles[UUID.fromString(userId)] ?: return@get call.respond(HttpStatusCode.NotFound)
 
@@ -109,7 +118,10 @@ fun Route.routeApiV1(path: String) = route(path) {
                 val profile = Profile(
                     userId = UUID.fromString(userId),
                     firstname = request.firstname,
-                    lastname = request.lastname
+                    lastname = request.lastname,
+                    email = "",
+                    createdAt = System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis()
                 )
                 profiles[UUID.fromString(userId)] = profile
 
@@ -137,8 +149,8 @@ fun Route.routeApiV1(path: String) = route(path) {
         }
 
     }
-    authenticate("google-oauth") { // OAuth authentication using Google configured in Application.kt
-        route("/google/login") { // 1. When this route is called, Ktor will redirect to Google for authentication 2. After successful authentication, Google will redirect back to this route
+    authenticate("google-oauth") {
+        route("/google/login") {
             handle {
                 val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
                     ?: error("No principal")
@@ -149,8 +161,8 @@ fun Route.routeApiV1(path: String) = route(path) {
                 }.body<String>()
                 client.close()
 
-                val data = ObjectMapper().readValue<Map<String, Any?>>(json)
-                val id = data["id"] as String?
+                val jsonElement = Json.parseToJsonElement(json)
+                val id = jsonElement.jsonObject["id"]?.jsonPrimitive?.content
 
                 if (id != null) {
                     call.sessions.set(JustSellSession(id))

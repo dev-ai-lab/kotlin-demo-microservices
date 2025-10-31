@@ -2,7 +2,9 @@ package com.shop.userservice.domain
 
 import com.shop.userservice.config.hashPassword
 import java.util.*
-
+/**
+ * Represents a user profile in the system.
+ */
 data class User(
     val id: UUID = UUID.randomUUID(),
     val username: String,
