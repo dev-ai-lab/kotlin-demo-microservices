@@ -9,7 +9,7 @@ version '0.0.1'
 
 application {
     //mainClass = 'com.shop.userservice.ApplicationKt'
-    mainClass = 'io.ktor.server.netty.EngineMain'
+    mainClass = 'com.shop.userservice.ApplicationKt'
 }
 
 repositories {
@@ -48,6 +48,16 @@ dependencies {
     implementation "io.ktor:ktor-client-apache-jvm:$ktor_version"
     implementation "io.ktor:ktor-client-content-negotiation-jvm:$ktor_version"
     implementation "io.ktor:ktor-client-logging-jvm:$ktor_version"
+
+    // Dependency Injection: Koin (It's similar to java's Spring Framework)
+    implementation "io.insert-koin:koin-core:4.1.1"
+    implementation "io.insert-koin:koin-ktor:4.1.1"
+    implementation "io.insert-koin:koin-logger-slf4j:4.1.1"
+
+    // Utilities
+    //implementation "io.github.cdimascio:dotenv-kotlin:6.5.1"
+    // https://mvnrepository.com/artifact/com.password4j/password4j
+    implementation("com.password4j:password4j:1.8.4")
 
     // Tests
     //testImplementation "io.ktor:ktor-server-tests-jvm:$ktor_version"

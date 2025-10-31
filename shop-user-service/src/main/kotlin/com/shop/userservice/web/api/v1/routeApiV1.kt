@@ -2,57 +2,143 @@ package com.shop.userservice.web.api.v1
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.shop.userservice.config.JustSellSession
-import com.shop.userservice.config.simpleJwt
+import com.shop.userservice.config.*
 import com.shop.userservice.domain.*
-import com.shop.userservice.web.api.v1.dto.PurchaseListDto
-import com.shop.userservice.web.api.v1.exception.InvalidCredentialException
-import io.ktor.server.auth.*
-import io.ktor.server.auth.OAuthAccessTokenResponse
+import com.shop.userservice.web.api.v1.dto.ProfileCreateDto
+import com.shop.userservice.web.api.v1.dto.UserSignupDto
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
 import io.ktor.client.request.*
-import io.ktor.client.call.*
 import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlin.collections.Map
-import kotlin.collections.getOrPut
-import kotlin.collections.mapOf
-import kotlin.collections.set
+import org.koin.ktor.ext.inject
+import java.util.*
 
 fun Route.routeApiV1(path: String) = route(path) {
+    val simpleJwt by inject<SimpleJWT>()
+
+    post("/signup") {
+        val signup = call.receive<UserSignupDto>()
+
+        // Validate input
+        if (signup.username.isBlank() || signup.password.isBlank()) {
+            return@post call.respond(HttpStatusCode.BadRequest, "Username and password must not be empty")
+        }
+
+        if (users.values.any { it.username == signup.username }) {
+            return@post call.respond(HttpStatusCode.Conflict, "Username already exists")
+        }
+
+        // Hash password
+        val passwordHash = hashPassword(signup.password)
+
+        // Create user
+        val userId = UUID.randomUUID()
+        val user = User(userId, username = signup.username, passwordHash = passwordHash)
+        users[userId.toString()] = user
+
+        // Create default profile linked to the userId
+        val profile = Profile(userId = userId, firstname = "", lastname = "")
+        profiles[userId] = profile
+        // Respond with created profile info (excluding sensitive data)
+        call.respond(HttpStatusCode.Created, mapOf(
+            "username" to user.username,
+            "profile" to mapOf(
+                "firstname" to profile.firstname,
+                "lastname" to profile.lastname
+            )
+        ))
+    }
+
     post("/login") {
         val userDto = call.receive<UserRequestDto>()
-        val user = users.getOrPut(userDto.username) { User(userDto.username, userDto.password) }
 
-        if (user.password != userDto.password) throw InvalidCredentialException("Invalid credentials")
-        call.respond(mapOf("token" to simpleJwt.sign(user.username)))
+        // Look up user by username
+        val user = users.values.find { it.username == userDto.username }
+            ?: return@post call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+
+        // Verify password
+        if (!verifyPassword(userDto.password, user.passwordHash)) {
+            return@post call.respond(HttpStatusCode.Unauthorized, "Invalid credentials")
+        }
+
+        // Generate JWT using immutable userId
+        val accessToken = simpleJwt.sign(user.id)
+
+        // Generate refresh token and map to userId
+        val refreshToken = UUID.randomUUID().toString()
+        refreshTokens[refreshToken] = user.id.toString()
+
+        // Respond with tokens (client only knows username, never userId)
+        call.respond(mapOf("token" to accessToken, "refresh_token" to refreshToken))
     }
 
-    authenticate {
-        post("/profile") {
-            val profile = call.receive<Profile>()
-            profiles[profile.id] = profile
-            call.respond(profiles[profile.id] ?: error("Profile not created"))
+
+    post("/token/refresh") {
+        val request = call.receive<RefreshTokenRequest>()
+        val userId = refreshTokens[request.refreshToken]
+
+        if (userId != request.userId) {
+            call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
+            return@post
         }
 
-        get("/profile/{profile_id}") {
-            val profile = profiles.get(call.parameters["profile_id"]) ?: error("No Such Profile")
-            call.respond(profile)
-        }
-
-        put("/profile/{profile_id}") {
-            val purchaseListDto = call.receive<PurchaseListDto>()
-            val profileId = call.parameters["profile_id"]
-            profiles[profileId]?.purchasedItemsId = purchaseListDto.list
-            call.respond(profiles[profileId] ?: error("profile cannot be updated"))
-        }
+        val newAccessToken = simpleJwt.sign(UUID.fromString(userId))
+        call.respond(mapOf("token" to newAccessToken))
     }
-    authenticate("google-oauth") {
-        route("/google/login") {
+
+    authenticate("jwt", "session-auth") {
+        route("/profile") {
+            get {
+                val userId = call.currentUserId() ?: return@get call.respond(HttpStatusCode.Unauthorized)
+
+                val profile = profiles[UUID.fromString(userId)] ?: return@get call.respond(HttpStatusCode.NotFound)
+
+                call.respond(profile)
+            }
+
+            post {
+                val userId = call.currentUserId() ?: return@post call.respond(HttpStatusCode.Unauthorized)
+
+                val request = call.receive<ProfileCreateDto>()
+                val profile = Profile(
+                    userId = UUID.fromString(userId),
+                    firstname = request.firstname,
+                    lastname = request.lastname
+                )
+                profiles[UUID.fromString(userId)] = profile
+
+                call.respond(profile)
+            }
+
+            // PUT: Update the logged-in user's profile
+            put {
+                val userId = call.currentUserId()
+                    ?: return@put call.respond(HttpStatusCode.Unauthorized)
+
+                val existingProfile = profiles[UUID.fromString(userId)]
+                    ?: return@put call.respond(HttpStatusCode.NotFound, "Profile not found")
+
+                val updatedProfileDto = call.receive<ProfileCreateDto>()
+
+                // Only update safe fields from DTO
+                existingProfile.firstname = updatedProfileDto.firstname
+                existingProfile.lastname = updatedProfileDto.lastname
+
+                profiles[UUID.fromString(userId)] = existingProfile
+
+                call.respond(existingProfile)
+            }
+        }
+
+    }
+    authenticate("google-oauth") { // OAuth authentication using Google configured in Application.kt
+        route("/google/login") { // 1. When this route is called, Ktor will redirect to Google for authentication 2. After successful authentication, Google will redirect back to this route
             handle {
                 val principal = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
                     ?: error("No principal")

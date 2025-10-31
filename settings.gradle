@@ -1,4 +1,4 @@
-rootProject.name = "develop-microservices-kotlin"
+rootProject.name = "shop.microservices"
 include ":shop-deployment"
 include ":shop-user-service"
 include ":shop-item-service"

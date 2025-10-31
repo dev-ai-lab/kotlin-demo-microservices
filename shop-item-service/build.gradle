@@ -9,7 +9,7 @@ group 'com.ktor.greenfield'
 version '0.0.1'
 
 application {
-    mainClass = 'io.ktor.server.netty.EngineMain'
+    mainClass = 'com.shop.itemservice.ApplicationKt'
 }
 
 repositories {
@@ -36,13 +36,17 @@ dependencies {
     implementation "io.ktor:ktor-client-core-jvm:$ktor_version"
     implementation "io.ktor:ktor-client-apache-jvm:$ktor_version"
 
-    // Tests
-    //testImplementation "io.ktor:ktor-server-tests-jvm:$ktor_version"
-    testImplementation "io.ktor:ktor-server-test-host:$ktor_version"
-    testImplementation "org.jetbrains.kotlin:kotlin-test"
+    // Dependency Injection: Koin (It's similar to java's Spring Framework)
+    implementation("io.insert-koin:koin-core:4.1.1")
+    implementation("io.insert-koin:koin-ktor:4.1.1")
+    implementation("io.insert-koin:koin-logger-slf4j:4.1.1")
 
     // HTTP client
     implementation("io.ktor:ktor-client-apache5-jvm:$ktor_version")
+
+    // Tests
+    testImplementation "io.ktor:ktor-server-test-host:$ktor_version"
+    testImplementation "org.jetbrains.kotlin:kotlin-test"
 }
 
 kotlin {
