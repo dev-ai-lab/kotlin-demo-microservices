@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
     id 'io.ktor.plugin' version "$ktor_version"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
     id 'application'
 }
 
@@ -8,8 +9,7 @@ group 'com.ktor.greenfield'
 version '0.0.1'
 
 application {
-    //mainClass = 'com.shop.userservice.ApplicationKt'
-    mainClass = 'com.shop.userservice.ApplicationKt'
+    mainClass = 'com.shop.userservice.UserApplicationKt'
 }
 
 repositories {
@@ -33,12 +33,15 @@ dependencies {
     implementation "io.ktor:ktor-server-auth-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-auth-jwt-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktor_version"
-    implementation "io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-html-builder-jvm:$ktor_version"
     // Additional server plugins used in code
     implementation "io.ktor:ktor-server-status-pages-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-sessions-jvm:$ktor_version"
 
+    // Serialization integration for Ktor. In plugins it needs org.jetbrains.kotlin.plugin.serialization
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+    // The actual JSON library
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     // Logging
     implementation "ch.qos.logback:logback-classic:$logback_version"
@@ -62,8 +65,10 @@ dependencies {
     // Tests
     //testImplementation "io.ktor:ktor-server-tests-jvm:$ktor_version"
     testImplementation "io.ktor:ktor-server-test-host:$ktor_version"
-
     testImplementation "org.jetbrains.kotlin:kotlin-test"
+    testImplementation("io.mockk:mockk:1.14.6")
+
+    implementation project(':common-utils')
 }
 
 kotlin {
@@ -78,3 +83,39 @@ java {
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     compilerOptions.jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
 }
+
+// Configuration for Integrtation Test in separate source set
+// --- 1. Define new source set ---
+sourceSets {
+    integrationTest {
+        kotlin {
+            srcDir 'src/integrationTest/kotlin'
+        }
+        resources {
+            srcDir 'src/integrationTest/resources'
+        }
+
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += output + compileClasspath
+    }
+}
+
+// --- 2. Extend configurations ---
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+// --- 3. Create test task ---
+tasks.register('integrationTest', Test) {
+    description = 'Runs integration tests.'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    shouldRunAfter test
+}
+
+// --- 4. Hook into `check` lifecycle (optional) ---
+check.dependsOn integrationTest
+

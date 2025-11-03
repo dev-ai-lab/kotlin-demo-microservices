@@ -1,0 +1,24 @@
+{
+  "info": {
+    "name": "Shop Item Service API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Root",
+      "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""]}}
+    },
+    {
+      "name": "Health",
+      "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"]}}
+    },
+    {
+      "name": "Get Item by ID",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "{{baseUrl}}/api/v1/item/1", "host": ["{{baseUrl}}"], "path": ["api", "v1", "item", "1"]}
+      }
+    }
+  ]
+}
+

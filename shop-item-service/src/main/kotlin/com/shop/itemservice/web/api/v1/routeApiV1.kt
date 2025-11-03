@@ -1,6 +1,7 @@
 package com.shop.itemservice.web.api.v1
 
 import com.shop.itemservice.service.ItemService
+import com.shop.itemservice.web.api.v1.dto.ErrorResponse
 import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -16,7 +17,7 @@ fun Route.routeApiV1(path: String) = route(path) {
             val item = itemService.getItemById(itemId) ?: throw IllegalStateException("No Such Item")
             call.respond(item)
         } catch (e: IllegalStateException) {
-            call.respond(HttpStatusCode.BadRequest, mapOf("error" to (e.message ?: "")))
+            call.respond(HttpStatusCode.BadRequest, ErrorResponse(error = e.message ?: ""))
         }
     }
 

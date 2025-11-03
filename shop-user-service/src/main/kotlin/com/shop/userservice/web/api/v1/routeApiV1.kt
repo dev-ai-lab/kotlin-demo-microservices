@@ -4,6 +4,11 @@ import com.shop.userservice.config.*
 import com.shop.userservice.domain.*
 import com.shop.userservice.web.api.v1.dto.ProfileCreateDto
 import com.shop.userservice.web.api.v1.dto.UserSignupDto
+import com.shop.userservice.web.api.v1.dto.request.RefreshTokenRequest
+import com.shop.userservice.web.api.v1.dto.request.UserRequestDto
+import com.shop.userservice.web.api.v1.dto.response.AuthResponse
+import com.shop.userservice.web.api.v1.dto.response.ProfileInfo
+import com.shop.userservice.web.api.v1.dto.response.UserSignupResponseDto
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.apache.*
@@ -19,6 +24,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.koin.ktor.ext.inject
 import java.util.*
+import kotlin.text.get
 
 fun Route.routeApiV1(path: String) = route(path) {
     val simpleJwt by inject<SimpleJWT>()
@@ -54,13 +60,16 @@ fun Route.routeApiV1(path: String) = route(path) {
             )
         profiles[userId] = profile
         // Respond with created profile info (excluding sensitive data)
-        call.respond(HttpStatusCode.Created, mapOf(
-            "username" to user.username,
-            "profile" to mapOf(
-                "firstname" to profile.firstname,
-                "lastname" to profile.lastname
+        call.respond(
+            HttpStatusCode.Created,
+            UserSignupResponseDto(
+                username = user.username,
+                profile = ProfileInfo(
+                    firstname = profile.firstname,
+                    lastname = profile.lastname
+                )
             )
-        ))
+        )
     }
 
     post("/login") {
@@ -83,21 +92,19 @@ fun Route.routeApiV1(path: String) = route(path) {
         refreshTokens[refreshToken] = user.id.toString()
 
         // Respond with tokens (client only knows username, never userId)
-        call.respond(mapOf("token" to accessToken, "refresh_token" to refreshToken))
+        call.respond(AuthResponse(token = accessToken, refresh_token = refreshToken))
     }
 
 
     post("/token/refresh") {
         val request = call.receive<RefreshTokenRequest>()
-        val userId = refreshTokens[request.refreshToken]
-
-        if (userId != request.userId) {
+        val userId = refreshTokens[request.refreshToken] ?: run {
             call.respond(HttpStatusCode.Unauthorized, "Invalid refresh token")
             return@post
         }
 
         val newAccessToken = simpleJwt.sign(UUID.fromString(userId))
-        call.respond(mapOf("token" to newAccessToken))
+        call.respond(AuthResponse(token = newAccessToken))
     }
 
     authenticate("jwt", "session-auth") {

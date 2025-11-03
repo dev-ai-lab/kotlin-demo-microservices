@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version "$kotlin_version"
     id 'io.ktor.plugin' version "$ktor_version"
+    id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
     id 'application'
 }
 
@@ -8,7 +9,7 @@ group 'com.ktor.greenfield'
 version '0.0.1'
 
 application {
-    mainClass = 'com.shop.itemservice.ApplicationKt'
+    mainClass = 'com.shop.itemservice.ItemApplicationKt'
 }
 
 repositories {
@@ -25,8 +26,12 @@ dependencies {
     implementation "io.ktor:ktor-server-auth-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-auth-jwt-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-content-negotiation-jvm:$ktor_version"
-    implementation "io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version"
     implementation "io.ktor:ktor-server-html-builder-jvm:$ktor_version"
+
+    // Serialization integration for Ktor. In plugins it needs org.jetbrains.kotlin.plugin.serialization
+    implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
+    // The actual JSON library
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
 
     // Logging
     implementation "ch.qos.logback:logback-classic:$logback_version"
@@ -42,6 +47,9 @@ dependencies {
 
     // HTTP client
     implementation("io.ktor:ktor-client-apache5-jvm:$ktor_version")
+
+    // Shared serializers
+    implementation project(':common-utils')
 
     // Tests
     testImplementation "io.ktor:ktor-server-test-host:$ktor_version"

@@ -51,8 +51,6 @@ data class JustSellSession(val sessionId: String?)
 
 val refreshTokens = mutableMapOf<String, String>() // token -> userId mapping
 
-data class RefreshTokenRequest(val userId: String, val refreshToken: String)
-
 fun hashPassword(password: String): String {
     // Use default Argon2id parameters (secure and salt is handled internally)
     val hash: Hash = Password.hash(password).withArgon2()

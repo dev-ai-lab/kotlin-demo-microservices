@@ -23,8 +23,6 @@ import org.koin.logger.slf4jLogger
 
 fun main(args: Array<String>): Unit = EngineMain.main(args)
 
-
-@Suppress("unused") // Referenced in application.conf
 fun Application.module() {
     install(Koin) {
         slf4jLogger()

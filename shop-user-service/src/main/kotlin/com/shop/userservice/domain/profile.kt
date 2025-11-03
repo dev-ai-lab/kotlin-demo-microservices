@@ -1,9 +1,12 @@
 package com.shop.userservice.domain
 
-//import com.shop.userservice.service.getPurchasedItems
+import com.shop.common.UUIDSerializer
+import kotlinx.serialization.Serializable
 import java.util.*
 
+@Serializable
 data class Profile(
+    @Serializable(with = UUIDSerializer::class)
     val userId: UUID,
     var firstname: String,
     var lastname: String,
@@ -31,4 +34,3 @@ val profiles = Collections.synchronizedMap(
     ).associateBy { it.userId }  // use userId as the key
         .toMutableMap()
 )
-

@@ -1,0 +1,70 @@
+{
+  "info": {
+    "name": "Shop Order Service API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Root",
+      "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""]}}
+    },
+    {
+      "name": "Create Cart",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/cart", "host": ["{{baseUrl}}"], "path": ["cart"]},
+        "body": {"mode": "raw", "raw": "{\n  \"userId\": \"<user_id>\"\n}"}
+      }
+    },
+    {
+      "name": "Add Item to Cart",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/cart/items", "host": ["{{baseUrl}}"], "path": ["cart", "items"]},
+        "body": {"mode": "raw", "raw": "{\n  \"userId\": \"<user_id>\",\n  \"itemId\": \"<item_id>\",\n  \"quantity\": 1\n}"}
+      }
+    },
+    {
+      "name": "Remove Item from Cart",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/cart/remove", "host": ["{{baseUrl}}"], "path": ["cart", "remove"]},
+        "body": {"mode": "raw", "raw": "{\n  \"userId\": \"<user_id>\",\n  \"itemId\": \"<item_id>\"\n}"}
+      }
+    },
+    {
+      "name": "Get Cart",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "{{baseUrl}}/cart/<user_id>", "host": ["{{baseUrl}}"], "path": ["cart", "<user_id>"]}
+      }
+    },
+    {
+      "name": "Place Order",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/orders", "host": ["{{baseUrl}}"], "path": ["orders"]},
+        "body": {"mode": "raw", "raw": "{\n  \"userId\": \"<user_id>\"\n}"}
+      }
+    },
+    {
+      "name": "Get Order",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "{{baseUrl}}/orders/<order_id>", "host": ["{{baseUrl}}"], "path": ["orders", "<order_id>"]}
+      }
+    },
+    {
+      "name": "Pay Order",
+      "request": {
+        "method": "POST",
+        "url": {"raw": "{{baseUrl}}/orders/<order_id>/pay", "host": ["{{baseUrl}}"], "path": ["orders", "<order_id>", "pay"]}
+      }
+    }
+  ]
+}
+

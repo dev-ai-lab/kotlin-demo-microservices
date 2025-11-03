@@ -1,0 +1,29 @@
+{
+  "info": {
+    "name": "Shop Payment Service API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Root",
+      "request": {"method": "GET", "url": {"raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""]}}
+    },
+    {
+      "name": "Create Payment",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "url": {"raw": "{{baseUrl}}/payments", "host": ["{{baseUrl}}"], "path": ["payments"]},
+        "body": {"mode": "raw", "raw": "{\n  \"orderId\": \"<order_id>\",\n  \"amount\": 100.0\n}"}
+      }
+    },
+    {
+      "name": "Get Payment",
+      "request": {
+        "method": "GET",
+        "url": {"raw": "{{baseUrl}}/payments/<payment_id>", "host": ["{{baseUrl}}"], "path": ["payments", "<payment_id>"]}
+      }
+    }
+  ]
+}
+
