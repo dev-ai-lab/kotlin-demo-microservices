@@ -225,6 +225,15 @@ Environment variables and config keys (examples)
 
 ---
 
+## TODOs
+- Add more detailed API documentation (e.g. OpenAPI/Swagger)
+- Add test and integration test setups for other services
+- Add CI/CD pipeline examples (GitHub Actions, etc.)
+- Add monitoring/logging examples (Prometheus, Grafana, etc.)
+- Add microservices patterns (service discovery, API gateway, etc.)
+- Add aws deployment with terraform (Kubernetes/EKS, Fargate, etc.)
+- Add React frontend for the shop system
+
 
 ## Command
 ```

@@ -1,4 +1,4 @@
-rootProject.name = "shop.microservices"
+rootProject.name = "shop-microservices"
 include ":shop-deployment"
 include ":shop-user-service"
 include ":shop-item-service"
