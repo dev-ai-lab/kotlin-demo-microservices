@@ -1,5 +1,4 @@
-FROM openjdk:17-jdk-alpine
+FROM openjdk:21-jdk-slim
 WORKDIR /app
-COPY build/libs/shop-payment-service-0.0.1.jar app.jar
+COPY build/libs/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
-

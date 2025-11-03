@@ -1,8 +1,8 @@
 # We need only JRE for running the artifact. No jdk required as we don't compile things on this
-FROM openjdk:8-jre-alpine
+FROM openjdk:21-jdk-slim
 
 ENV APPLICATION_USER ktor
-RUN adduser -D -g '' $APPLICATION_USER
+RUN adduser --disabled-password --gecos '' $APPLICATION_USER || true
 
 RUN mkdir /app
 RUN chown -R $APPLICATION_USER /app
@@ -11,7 +11,8 @@ EXPOSE 8081/tcp
 
 USER $APPLICATION_USER
 
-COPY ./build/libs/shop-item-service.jar /app/shop-item-service.jar
+# Copy any jar produced into the container as a single app.jar
+COPY ./build/libs/*.jar /app/app.jar
 WORKDIR /app
 
-CMD ["java", "-server", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-XX:InitialRAMFraction=2", "-XX:MinRAMFraction=2", "-XX:MaxRAMFraction=2", "-XX:+UseG1GC", "-XX:MaxGCPauseMillis=100", "-XX:+UseStringDeduplication", "-jar", "shop-item-service.jar"]
+CMD ["java", "-jar", "app.jar"]

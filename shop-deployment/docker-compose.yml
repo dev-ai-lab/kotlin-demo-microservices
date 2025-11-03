@@ -2,20 +2,78 @@ version: "3.8"
 
 services:
   shop-user-service:
-    image: shop-user-service:latest
+    build:
+      context: ../shop-user-service
+      dockerfile: Dockerfile
+    image: shop-user-service:local
     depends_on:
       - shop-item-service
+    environment:
+      - PORT=8080
+      # - JWT_SECRET=your_jwt_secret_here
     ports:
       - "8080:8080"
+    restart: unless-stopped
     networks:
       - backend
 
   shop-item-service:
-    image: shop-item-service:latest
+    build:
+      context: ../shop-item-service
+      dockerfile: Dockerfile
+    image: shop-item-service:local
+    environment:
+      - PORT=8081
     ports:
       - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  shop-order-service:
+    build:
+      context: ../shop-order-service
+      dockerfile: Dockerfile
+    image: shop-order-service:local
+    # The service exposes port 83 by default (see shop-order-service/src/main/resources/application.conf)
+    environment:
+      - PORT=83
+      # if you want to override external service URLs you can set them here, e.g.
+      # - SHOP_ORDER_SERVICE__EXTERNAL_SERVICES__USER_SERVICE_URL=http://shop-user-service:8080
+      # - SHOP_ORDER_SERVICE__EXTERNAL_SERVICES__ITEM_SERVICE_URL=http://shop-item-service:8081
+    ports:
+      - "83:83"
+    depends_on:
+      - shop-user-service
+      - shop-item-service
+    restart: unless-stopped
+    networks:
+      - backend
+
+  shop-payment-service:
+    build:
+      context: ../shop-payment-service
+      dockerfile: Dockerfile
+    image: shop-payment-service:local
+    # The service exposes port 82 by default (see shop-payment-service/src/main/resources/application.conf)
+    environment:
+      - PORT=82
+      # - SHOP_PAYMENT_SERVICE__EXTERNAL_SERVICES__ORDER_SERVICE_URL=http://shop-order-service:83
+    ports:
+      - "82:82"
+    depends_on:
+      - shop-user-service
+      - shop-order-service
+    restart: unless-stopped
     networks:
       - backend
 
 networks:
   backend:
+    driver: bridge
+
+# Quick run (from this folder):
+# docker compose up --build
+# Notes:
+# - Services are built from local Dockerfiles; images are tagged with the `:local` suffix.
+# - `depends_on` ensures container start order but does not wait for full readiness; consider adding healthchecks or an entrypoint wait script for production-like readiness checks.
